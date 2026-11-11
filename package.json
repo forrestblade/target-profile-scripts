@@ -1,0 +1,28 @@
+{
+  "name": "target-profile-scripts",
+  "version": "0.1.0",
+  "description": "Adobe Target profile scripts you can run and test locally: a runtime that mirrors Target's documented script API, a linter for Target's limits, and a library of reusable scripts.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Forrest Blade <mail@forrestblade.com>",
+  "repository": "github:forrestblade/target-profile-scripts",
+  "engines": { "node": ">=20" },
+  "files": ["dist", "scripts"],
+  "exports": { ".": "./dist/index.js" },
+  "bin": { "tps": "./dist/cli.js" },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "lint:scripts": "tsx src/cli.ts lint scripts/*.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  },
+  "dependencies": {
+    "acorn": "^8.14.0"
+  }
+}
