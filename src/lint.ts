@@ -90,14 +90,38 @@ function loc(n: Node, source: string): { line: number; column: number } {
   return { line, column };
 }
 
-function literalLoopBound(forNode: Node): number | null {
-  // for (var i = 0; i < 10; i++) style: find a numeric literal on the test.
+function simpleLoopIterations(forNode: Node): number | null {
+  const init = forNode.init as Node | null;
   const test = forNode.test as Node | null;
-  if (!test || test.type !== "BinaryExpression") return null;
-  const right = test.right as Node;
+  const update = forNode.update as Node | null;
+  if (init?.type !== "VariableDeclaration" || test?.type !== "BinaryExpression" || update?.type !== "UpdateExpression") return null;
+  const declarations = init.declarations as Node[];
+  if (declarations.length !== 1) return null;
+  const declaration = declarations[0];
+  const variable = declaration.id as Node;
+  const start = declaration.init as Node | null;
   const left = test.left as Node;
-  const lit = right.type === "Literal" ? right : left.type === "Literal" ? left : null;
-  return lit && typeof lit.value === "number" ? lit.value : null;
+  const end = test.right as Node;
+  const updated = update.argument as Node;
+  if (variable.type !== "Identifier" || left.type !== "Identifier" || updated.type !== "Identifier") return null;
+  if (left.name !== variable.name || updated.name !== variable.name) return null;
+  if (start?.type !== "Literal" || end.type !== "Literal") return null;
+  if (typeof start.value !== "number" || typeof end.value !== "number") return null;
+
+  let counterChanged = false;
+  walk(forNode.body, (n) => {
+    const target = n.type === "AssignmentExpression" ? n.left as Node : n.type === "UpdateExpression" ? n.argument as Node : null;
+    if (target?.type === "Identifier" && target.name === variable.name) counterChanged = true;
+  });
+  if (counterChanged) return null;
+
+  if (update.operator === "++" && (test.operator === "<" || test.operator === "<=")) {
+    return Math.max(0, test.operator === "<" ? Math.ceil(end.value - start.value) : Math.floor(end.value - start.value) + 1);
+  }
+  if (update.operator === "--" && (test.operator === ">" || test.operator === ">=")) {
+    return Math.max(0, test.operator === ">" ? Math.ceil(start.value - end.value) : Math.floor(start.value - end.value) + 1);
+  }
+  return null;
 }
 
 export function lint(source: string, options: LintOptions = {}): LintResult {
@@ -180,7 +204,7 @@ export function lint(source: string, options: LintOptions = {}): LintResult {
         const isPropertyName = parent?.type === "MemberExpression" && parent.property === n && !parent.computed;
         const isKey = parent?.type === "Property" && parent.key === n;
         if (FORBIDDEN_GLOBALS.has(id) && !isPropertyName && !isKey) {
-          push({ rule: "forbidden-global", severity: "error", message: `${id} does not exist in Target's script runtime; the script would throw and be disabled.`, ...loc(n, source) });
+          push({ rule: "forbidden-global", severity: "error", message: `${id} is disallowed by this lint policy; avoid browser/Node APIs and dynamic code.`, ...loc(n, source) });
         }
         break;
       }
@@ -204,11 +228,11 @@ export function lint(source: string, options: LintOptions = {}): LintResult {
         break;
       case "ForStatement": {
         stats.loops += 1;
-        const bound = literalLoopBound(n);
+        const bound = simpleLoopIterations(n);
         if (bound === null) {
-          push({ rule: "open-ended-loop", severity: "warning", message: "for loop bound is not a literal; keep loops to a fixed, small count (50 iterations max).", ...loc(n, source) });
+          push({ rule: "open-ended-loop", severity: "warning", message: "Cannot determine a simple fixed iteration count; use a counter with literal bounds and a matching increment or decrement.", ...loc(n, source) });
         } else if (bound > maxLoop) {
-          push({ rule: "loop-iterations", severity: "warning", message: `for loop runs up to ${bound} times; Adobe's limit is ${maxLoop}.`, ...loc(n, source) });
+          push({ rule: "loop-iterations", severity: "warning", message: `for loop has ${bound} iterations; Adobe recommends at most ${maxLoop}.`, ...loc(n, source) });
         }
         break;
       }

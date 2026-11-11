@@ -57,6 +57,14 @@ if (mbox.name == 'orderThankyouPage') {
     expect(ok.stats.loops).toBe(1);
   });
 
+  it("checks loop iterations from the initial value, inclusive bound and update direction", () => {
+    expect(rules("for (var i = 50; i < 100; i++) {} return i;")).not.toContain("loop-iterations");
+    expect(rules("for (var i = 0; i <= 50; i++) {} return i;")).toContain("loop-iterations");
+    expect(rules("for (var i = 100; i > 0; i--) {} return i;")).toContain("loop-iterations");
+    expect(rules("for (var i = 0; i < 10; i--) {} return i;")).toContain("open-ended-loop");
+    expect(rules("for (var i = 0; i < 10; i++) { i--; } return i;")).toContain("open-ended-loop");
+  });
+
   it("warns on recursion", () => {
     expect(rules("function f(n) { return n ? f(n - 1) : 0; } return f(3);")).toContain("recursion");
   });
