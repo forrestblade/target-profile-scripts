@@ -55,7 +55,7 @@ describe("Journey", () => {
       .build();
     expect(reqs.map((r) => r.now)).toEqual([1000, 1000, 1000 + 86_400_000]);
     expect(reqs.map((r) => r.user?.isNewSession)).toEqual([true, false, true]);
-    expect(reqs.map((r) => r.user?.isFirstSession)).toEqual([true, false, false]);
+    expect(reqs.map((r) => r.user?.isFirstSession)).toEqual([true, true, false]);
     expect(reqs.map((r) => r.landing)).toEqual([
       "https://a.com/?utm_source=mail",
       "https://a.com/?utm_source=mail",

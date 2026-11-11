@@ -46,6 +46,7 @@ export class Journey {
   private clock: number;
   private landing?: string;
   private inSession = false;
+  private firstSession = true;
 
   constructor(startAt: number | Date = Date.UTC(2026, 0, 1)) {
     this.clock = typeof startAt === "number" ? startAt : startAt.getTime();
@@ -63,6 +64,7 @@ export class Journey {
 
   /** A new session: landing page resets to this request's page. */
   session(): this {
+    if (this.requests.length > 0) this.firstSession = false;
     this.inSession = false;
     this.landing = undefined;
     return this;
@@ -78,7 +80,7 @@ export class Journey {
       ...rest,
       mbox: { name: mbox, params },
       landing: rest.landing ?? this.landing,
-      user: { isNewSession, isFirstSession: isNewSession && this.requests.length === 0, ...rest.user },
+      user: { isNewSession, isFirstSession: this.firstSession, ...rest.user },
       now: this.clock,
     });
     return this;
