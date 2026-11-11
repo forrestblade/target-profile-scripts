@@ -47,6 +47,16 @@ describe("runScript", () => {
     expect(r.value).toBe("www.example.com|mail|google.com|mx|gold|TX|true");
   });
 
+  it("persists profile parameters from explicit inputs and profile-prefixed mbox parameters", () => {
+    const state = createVisitorState();
+    const tier = { name: "tier", source: "return profile.get('tier');" };
+
+    expect(runScript(tier, { profile: { params: { tier: "silver" } } }, state).value).toBe("silver");
+    expect(runScript(tier, {}, state).value).toBe("silver");
+    expect(runScript(tier, { mbox: { params: { "profile.tier": "gold" } } }, state).value).toBe("gold");
+    expect(runScript(tier, {}, state).value).toBe("gold");
+  });
+
   it("landing defaults to page when not given", () => {
     const r = runScript({ name: "l", source: "return landing.url;" }, { page: "https://a.com/x" }, createVisitorState());
     expect(r.value).toBe("https://a.com/x");

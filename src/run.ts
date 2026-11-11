@@ -23,7 +23,7 @@ export interface RequestInput {
 }
 
 export interface RunOptions {
-  /** Wall-clock cap for one script. Stands in for Target's instruction limit. */
+  /** Wall-clock cap for one script, independent of Target's instruction counter. */
   timeoutMs?: number;
 }
 
@@ -45,12 +45,19 @@ export interface Sandbox {
 }
 
 export function createSandbox(scriptName: string, request: RequestInput, state: VisitorState): Sandbox {
+  for (const [key, value] of Object.entries(request.mbox?.params ?? {})) {
+    if (key.startsWith("profile.") && key.length > 8) {
+      state.profileParams[key.slice(8)] = value;
+    }
+  }
+  Object.assign(state.profileParams, request.profile?.params);
+
   return {
     page: createTargetUrl(request.page),
     landing: createTargetUrl(request.landing ?? request.page),
     referrer: createTargetUrl(request.referrer),
     mbox: createMbox(request.mbox?.name, request.mbox?.params),
-    profile: createProfile(request.profile),
+    profile: createProfile({ ...request.profile, params: state.profileParams }),
     user: createUser(state, scriptName, request.user),
   };
 }
@@ -80,6 +87,8 @@ const FIXED_CLOCK_PRELUDE = `
  * context holds only the documented objects plus ECMAScript built-ins: no
  * fetch, no require, no process, no timers. `console` exists and does nothing,
  * which is what Adobe documents for server-side scripts.
+ *
+ * For trusted local scripts only. Node's vm is not a security boundary.
  */
 export function runScript(
   script: ProfileScript,
