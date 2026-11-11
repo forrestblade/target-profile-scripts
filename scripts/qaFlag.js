@@ -1,7 +1,7 @@
 /*
  * user.qaFlag
- * Returns: the adobeQA value from the URL or mbox so QA audiences can single out testers; cleared when absent.
- * Needs:   testers to open the site with ?adobeQA=<token>. Case-insensitive parameter name.
+ * Returns: a QA token held for the current session, cleared on the next session without a token.
+ * Needs:   ?adobeQA=<token>, ?adobeqa=<token>, or the adobeQA mbox parameter.
  */
 try {
   var flag = page.param('adobeQA') || page.param('adobeqa') || mbox.param('adobeQA') || '';
