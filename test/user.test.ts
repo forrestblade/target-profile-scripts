@@ -23,6 +23,19 @@ describe("createUser", () => {
     expect(aAgain.getLocal("lastPurchaseTime")).toBe(1000);
   });
 
+  it("stores prototype-like script names and local keys without touching object prototypes", () => {
+    const state = createVisitorState(JSON.parse('{"__proto__":"value"}'));
+    const user = createUser(state, "__proto__");
+    user.setLocal("__proto__", "local value");
+
+    expect(user.get("__proto__")).toBe("value");
+    expect(user.getLocal("__proto__")).toBe("local value");
+    expect(createUser(state, "constructor").getLocal("__proto__")).toBeNull();
+    expect(Object.getPrototypeOf(state.attributes)).toBeNull();
+    expect(Object.getPrototypeOf(state.locals)).toBeNull();
+    expect(Object.getPrototypeOf(state.locals.__proto__)).toBeNull();
+  });
+
   it("looks up headers case-insensitively and derives user.browser from user-agent", () => {
     const user = createUser(createVisitorState(), "s", {
       headers: { "User-Agent": "Mozilla/5.0 Safari/605", "Accept-Language": "en-US" },

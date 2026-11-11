@@ -11,10 +11,16 @@ export interface VisitorState {
   attributes: Record<string, unknown>;
   /** `user.setLocal` values, scoped by the script that set them. */
   locals: Record<string, Record<string, unknown>>;
+  /** Persistent visitor parameters supplied as `profile.*`. */
+  profileParams: Record<string, string>;
 }
 
 export function createVisitorState(attributes: Record<string, unknown> = {}): VisitorState {
-  return { attributes: { ...attributes }, locals: {} };
+  return {
+    attributes: Object.assign(Object.create(null), attributes),
+    locals: Object.create(null),
+    profileParams: Object.create(null),
+  };
 }
 
 export interface UserInput {
@@ -61,7 +67,7 @@ export function createUser(state: VisitorState, scriptName: string, input: UserI
   const headers = Object.fromEntries(
     Object.entries(input.headers ?? {}).map(([k, v]) => [k.toLowerCase(), v]),
   );
-  const locals = (state.locals[scriptName] ??= {});
+  const locals = (state.locals[scriptName] ??= Object.create(null));
 
   return Object.freeze({
     get(name: string): unknown {
