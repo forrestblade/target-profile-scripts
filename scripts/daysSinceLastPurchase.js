@@ -14,5 +14,5 @@ try {
     return Math.floor((now - last) / dayInMillis);
   }
 } catch (e) {
-  return user.get('daysSinceLastPurchase');
+  return;
 }
