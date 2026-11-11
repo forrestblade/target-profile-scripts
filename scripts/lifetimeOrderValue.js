@@ -1,16 +1,17 @@
 /*
  * user.lifetimeOrderValue
- * Returns: sum of orderTotal across the visitor's distinct orders, rounded to cents.
+ * Returns: total order value, rounded to cents. Consecutive reloads of the same order are ignored.
  * Needs:   the order confirmation mbox to pass orderId and orderTotal.
  */
 try {
   var total = parseFloat(user.get('lifetimeOrderValue'));
-  if (isNaN(total) || total < 0) {
+  if (!isFinite(total) || total < 0) {
     total = 0;
   }
   var orderId = mbox.param('orderId');
-  var orderTotal = parseFloat(mbox.param('orderTotal'));
-  if (orderId && orderId !== user.getLocal('lastOrderId') && !isNaN(orderTotal) && orderTotal >= 0) {
+  var raw = mbox.param('orderTotal');
+  var orderTotal = raw ? Number(raw) : NaN;
+  if (orderId && orderId !== user.getLocal('lastOrderId') && isFinite(orderTotal) && orderTotal >= 0) {
     user.setLocal('lastOrderId', orderId);
     return Math.round((total + orderTotal) * 100) / 100;
   }
