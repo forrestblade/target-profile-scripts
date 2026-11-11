@@ -1,0 +1,6 @@
+[
+  { "mbox": { "name": "home" }, "page": "https://shop.example.com/?utm_campaign=spring", "user": { "isNewSession": true } },
+  { "mbox": { "name": "orderConfirmPage", "params": { "orderId": "A1", "orderTotal": "19.99" } } },
+  { "mbox": { "name": "orderConfirmPage", "params": { "orderId": "A1", "orderTotal": "19.99" } } },
+  { "mbox": { "name": "orderConfirmPage", "params": { "orderId": "A2", "orderTotal": "5.00" } } }
+]

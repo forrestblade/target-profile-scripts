@@ -33,16 +33,9 @@ Node 22.12+, 24 or 26. From the cloned repository:
     npm run build
     npm test
     node dist/cli.js lint scripts/*.js
-    node dist/cli.js run scripts/purchaseCount.js --requests requests.json
+    node dist/cli.js run scripts/purchaseCount.js --requests examples/requests.json --json
 
-Where `requests.json` is an array of mbox calls:
-
-```json
-[
-  { "mbox": { "name": "home" }, "page": "https://shop.example.com/?utm_campaign=spring" },
-  { "mbox": { "name": "orderConfirmPage", "params": { "orderId": "A1", "orderTotal": "19.99" } } }
-]
-```
+The example includes two orders and a confirmation-page reload. It returns `{"purchaseCount": 2}`.
 
 In a test:
 
