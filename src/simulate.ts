@@ -44,6 +44,7 @@ export class Journey {
   private readonly requests: RequestInput[] = [];
   private clock: number;
   private landing?: string;
+  private inSession = false;
 
   constructor(startAt: number | Date = Date.UTC(2026, 0, 1)) {
     this.clock = typeof startAt === "number" ? startAt : startAt.getTime();
@@ -61,6 +62,7 @@ export class Journey {
 
   /** A new session: landing page resets to this request's page. */
   session(): this {
+    this.inSession = false;
     this.landing = undefined;
     return this;
   }
@@ -68,8 +70,9 @@ export class Journey {
   /** One mbox request. The first request of a session sets the landing page. */
   hit(mbox: string, input: Omit<RequestInput, "mbox" | "now"> & { params?: Record<string, string> } = {}): this {
     const { params, ...rest } = input;
-    const isNewSession = this.landing === undefined;
-    if (isNewSession && rest.page) this.landing = rest.page;
+    const isNewSession = !this.inSession;
+    this.inSession = true;
+    if (isNewSession) this.landing = rest.page;
     this.requests.push({
       ...rest,
       mbox: { name: mbox, params },
