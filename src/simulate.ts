@@ -21,11 +21,12 @@ export interface Simulation {
  * not guaranteed, so scripts are run in the order given here and should not
  * depend on each other.
  */
-export function simulate(
-  scripts: ProfileScript[],
-  requests: RequestInput[],
-  options: RunOptions & { initialAttributes?: Record<string, unknown> } = {},
-): Simulation {
+export interface SimulateOptions extends RunOptions {
+  /** `user.*` values the visitor already has before the first request. */
+  initialAttributes?: Record<string, unknown>;
+}
+
+export function simulate(scripts: ProfileScript[], requests: RequestInput[], options: SimulateOptions = {}): Simulation {
   const state = createVisitorState(options.initialAttributes);
   const steps: StepResult[] = [];
   const errors: Simulation["errors"] = [];
@@ -87,7 +88,7 @@ export class Journey {
     return [...this.requests];
   }
 
-  run(scripts: ProfileScript[], options?: RunOptions): Simulation {
+  run(scripts: ProfileScript[], options?: SimulateOptions): Simulation {
     return simulate(scripts, this.build(), options);
   }
 }
